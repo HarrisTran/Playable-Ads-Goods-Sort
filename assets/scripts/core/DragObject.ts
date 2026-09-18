@@ -29,8 +29,6 @@ export class DragObject extends Component implements IDragObject {
     private _originalParent: Node | null = null;
     private _originalColor: Color = new Color(255, 255, 255, 255);
     private _originalScale: Vec3 = new Vec3();
-    private _originalSiblingIndex: number = 0;
-
     private _isBeingDragged: boolean = false;
     private _canBeDraggedFunc!: () => boolean;
     private _dragDropManager: DragDropManager | null = null;
@@ -41,7 +39,6 @@ export class DragObject extends Component implements IDragObject {
             this._originalColor = this.spriteRenderer.color.clone();
         }
         this._originalScale = this.node.scale.clone();
-        this._originalSiblingIndex = this.node.getSiblingIndex();
     }
 
     public init(id: number, canBeDragged: () => boolean, manager: DragDropManager): void {
@@ -51,23 +48,7 @@ export class DragObject extends Component implements IDragObject {
     }
 
     public containsPosition(position: Vec2): boolean {
-        let objectBound: Rect;
-
-        if (this.useCustomBounds) {
-            const uiTransform = this.node.getComponent(UITransform);
-            if (!uiTransform) return false;
-            const worldPos = uiTransform.convertToWorldSpaceAR(new Vec3(0, this.customBounds.y / 2, 0));
-            objectBound = new Rect(
-                worldPos.x - this.customBounds.x / 2,
-                worldPos.y - this.customBounds.y / 2,
-                this.customBounds.x,
-                this.customBounds.y
-            );
-        } else {
-            objectBound = this.getSpriteBounds();
-        }
-
-        return objectBound.contains(position);
+        return this.getSpriteBounds().contains(position);
     }
 
     public canBeDragged(): boolean {
@@ -83,19 +64,11 @@ export class DragObject extends Component implements IDragObject {
             const worldPos = this.node.worldPosition.clone();
             this.node.setParent(this._dragDropManager.container);
             this.node.worldPosition = worldPos;
-        } else {
-            if (this.node.parent) {
-                this._originalSiblingIndex = this.node.getSiblingIndex();
-                this.node.setSiblingIndex(this.node.parent.children.length - 1);
-            }
         }
     }
 
     public onEndDrag(): void {
         this._isBeingDragged = false;
-        if (this.node.parent === this._originalParent) {
-            this.node.setSiblingIndex(this._originalSiblingIndex);
-        }
     }
 
     public updatePosition(newPosition: Vec3): void {
@@ -125,9 +98,6 @@ export class DragObject extends Component implements IDragObject {
             this.node.setParent(this._originalParent);
         }
         this.node.setPosition(this._originalPosition);
-        if (this._originalParent) {
-            this.node.setSiblingIndex(this._originalSiblingIndex);
-        }
     }
 
     public getOriginalPosition(): Readonly<Vec3> {

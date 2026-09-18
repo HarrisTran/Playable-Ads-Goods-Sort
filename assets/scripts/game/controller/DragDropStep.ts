@@ -1,11 +1,10 @@
-import { ILevelAnimationStep } from './LevelAnimation';
-import { StateControl } from './LevelAnimation';
 import { ILevelDataManager, ShelfLayerDisplay } from '../../core/Types';
 import { DragDropManager, DropZoneData } from '../../core/DragDropManager';
 import { ShelfBase } from '../ShelfBase';
 import { ShelfItemBasic } from '../ShelfItemBasic';
 import { DropZone } from '../../core/DropZone';
 import { error } from 'cc';
+import { ILevelAnimationStep, StateControl } from './LevelAnimationTypes';
 
 export class DragDropStep implements ILevelAnimationStep {
     public get canInterrupt(): boolean { return true; }

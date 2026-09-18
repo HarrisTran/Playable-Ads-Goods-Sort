@@ -1,4 +1,4 @@
-import { ILevelAnimationStep, StateControl } from './LevelAnimation';
+import { ILevelAnimationStep, StateControl } from './LevelAnimationTypes';
 import { ILevelDataManager, IShelfItem, ShelfType } from '../../core/Types';
 import { GridData, SlideData } from './GridData';
 import { DragDropManager } from '../../core/DragDropManager';

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, Vec3, Color, tween, instantiate, resources, Prefab, ParticleSystem2D, director, Canvas, UITransform, Size } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, Vec3, Color, tween, instantiate, resources, Prefab, ParticleSystem2D, director, Canvas, UITransform, Size, Sorting2D } from 'cc';
 import { IShelfItem, ShelfItemMeta, ISpacingData, ShelfLayerDisplay, IShelf2, IDragObject } from '../core/Types';
 import { DragObject } from '../core/DragObject';
 import { DragDropManager } from '../core/DragDropManager';
@@ -142,16 +142,7 @@ export class ShelfItemBasic extends Component implements IShelfItem {
         }
         
         this.node.setScale(Vec3.ONE);
-        
-        // Handling z-index equivalents in Cocos Canvas UI
-        // Smaller Z in unity was Top. In cocos UI, higher sibling index is Top.
-        if (this.node.parent) {
-            // Very rudimentary mapping. The real implementation might need a dedicated container per layer
-            let zIndex = layerOrder === ShelfLayerDisplay.Top ? 100 : 50;
-            if (this._meta.slotId === 1) zIndex += 1; // Middle item on top
-            // Cocos Creator 3: You can't directly set zIndex easily, use setSiblingIndex, 
-            // but sibling index depends on how many children there are.
-        }
+        this.updateSorting();
     }
 
     public fadeInVisual(duration: number): void {
@@ -162,6 +153,8 @@ export class ShelfItemBasic extends Component implements IShelfItem {
             const offset = new Vec3(offsetVec2.x, offsetVec2.y, 0);
 
             const targetColor = ShelfItemBasic.getDisplayColor(this._currentDisplay);
+            
+            this.updateSorting();
             
             // Cocos Tweening
             if (this.spriteRenderer) {
@@ -274,6 +267,29 @@ export class ShelfItemBasic extends Component implements IShelfItem {
                 return new Color(255, 255, 255, 255);
             default:
                 return new Color(255, 0, 0, 255);
+        }
+    }
+
+    public updateSorting(): void {
+        const parentSorting = this.node.parent?.getComponent(Sorting2D);
+        if (!parentSorting) return;
+
+        let sorting = this.getComponent(Sorting2D);
+        if (!sorting) {
+            sorting = this.addComponent(Sorting2D);
+        }
+
+        let offset = 0;
+        if (this._currentDisplay === ShelfLayerDisplay.Top) {
+            offset = 10;
+        } else if (this._currentDisplay === ShelfLayerDisplay.Second) {
+            offset = 5;
+        }
+        
+        if (this._meta.slotId === 1) offset += 1;
+
+        if (sorting) {
+            sorting.sortingOrder = parentSorting.sortingOrder + offset;
         }
     }
 }

@@ -1,8 +1,9 @@
 import { ILevelDataManager } from '../../core/Types';
 import { SlideData } from './GridData';
 import { ShelfBase } from '../ShelfBase';
-import { tween, Vec3 } from 'cc';
-import { ILevelAnimationStep, StateControl } from './LevelAnimation';
+import { ShelfItemBasic } from '../ShelfItemBasic';
+import { tween, Vec3, Sorting2D } from 'cc';
+import { ILevelAnimationStep, StateControl } from './LevelAnimationTypes';
 
 export class SlideDownStep implements ILevelAnimationStep {
     public get canInterrupt(): boolean { return false; }
@@ -14,15 +15,18 @@ export class SlideDownStep implements ILevelAnimationStep {
     private _slides: SlideData[];
     private _completedCount: number = 0;
     private _started: boolean = false;
+    private _maxRow: number;
 
     constructor(
         control: StateControl,
         levelDataManager: ILevelDataManager,
-        slides: SlideData[]
+        slides: SlideData[],
+        maxRow: number
     ) {
         this._control = control;
         this._levelDataManager = levelDataManager;
         this._slides = slides;
+        this._maxRow = maxRow;
     }
 
     public enter(): void {
@@ -46,6 +50,17 @@ export class SlideDownStep implements ILevelAnimationStep {
             tween(shelf.node)
                 .to(SlideDownStep.SLIDE_DURATION, { position: targetPos }, { easing: 'quadOut' })
                 .call(() => {
+                    const sorting = shelf.node.getComponent(Sorting2D);
+                    if (sorting) {
+                        sorting.sortingOrder = slide.toRow * 100;
+                        
+                        shelf.node.children.forEach(child => {
+                            const item = child.getComponent(ShelfItemBasic);
+                            if (item) {
+                                item.updateSorting();
+                            }
+                        });
+                    }
                     this._completedCount++;
                 })
                 .start();

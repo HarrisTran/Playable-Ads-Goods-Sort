@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform } from 'cc';
+import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform, Sorting2D } from 'cc';
 import { CommonShelfNormal } from '../CommonShelfNormal';
 import { ShelfItemBasic } from '../ShelfItemBasic';
 import { DragDropManager } from '../../core/DragDropManager';
@@ -173,27 +173,17 @@ export class GameController extends Component {
                 shelfNode.name = `Shelf_C${col}_R${row}`;
                 this.shelfContainer!.addChild(shelfNode);
 
-                // IMPORTANT FOR CANVAS Z SORTING:
-                // We want lower rows to appear in front of higher rows (if there's overlap).
-                // In Cocos, higher sibling index draws on top. So bottom rows (smaller Y) should have higher sibling index.
-                // Or if row=0 is bottom, row 0 should be rendered last (highest index).
-                // Since we iterate row from 0 to rowCount, the last added is row (highest). So highest row draws on top.
-                // Wait, if we want row 0 (bottom) to overlap IN FRONT of row 1, we must add row 1 first, then row 0.
-                // Let's reverse sibling index after adding.
-                // We will just let them add sequentially and fix sibling index later if needed.
-
                 const shelf = shelfNode.getComponent(CommonShelfNormal)!;
                 shelves[col][row] = shelf;
             }
         }
 
-        // Set sibling index so higher rows are drawn ON TOP of lower rows (for 3D overlap effect)
-        // Highest row (top) should be drawn last (at bottom of hierarchy)
-        for (let row = 0; row < this.rowCount; row++) {
-            for (let col = 0; col < this.columnCount; col++) {
-                const node = shelves[col][row].node;
-                if (node.parent) {
-                    node.setSiblingIndex(node.parent.children.length - 1);
+        // Set Sorting2D order: lower rows (closer to camera) → higher sortingOrder → render in front
+        for (let col = 0; col < this.columnCount; col++) {
+            for (let row = 0; row < this.rowCount; row++) {
+                const sorting = shelves[col][row].node.getComponent(Sorting2D);
+                if (sorting) {
+                    sorting.sortingOrder = row * 100;
                 }
             }
         }

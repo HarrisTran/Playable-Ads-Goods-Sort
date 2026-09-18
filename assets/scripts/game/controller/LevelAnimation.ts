@@ -4,30 +4,9 @@ import { GridData, SlideData } from './GridData';
 import { DragDropStep } from './DragDropStep';
 import { TidyUpStep } from './TidyUpStep';
 import { SlideDownStep } from './SlideDownStep';
+import { ILevelAnimationStep, StateControl } from './LevelAnimationTypes';
 import { log } from 'cc';
 
-export interface ILevelAnimationStep {
-    readonly canInterrupt: boolean;
-    enter(): void;
-    update(dt: number): void;
-    exit(): void;
-}
-
-export class StateControl {
-    public toDragDrop: () => void;
-    public toTidyUp: () => void;
-    public toSlideDown: (slides: SlideData[]) => void;
-
-    constructor(
-        toDragDrop: () => void,
-        toTidyUp: () => void,
-        toSlideDown: (slides: SlideData[]) => void
-    ) {
-        this.toDragDrop = toDragDrop;
-        this.toTidyUp = toTidyUp;
-        this.toSlideDown = toSlideDown;
-    }
-}
 
 export class LevelAnimation {
     private _levelDataManager: ILevelDataManager;
@@ -143,7 +122,8 @@ export class LevelAnimation {
         this._currentStep = new SlideDownStep(
             control,
             this._levelDataManager,
-            slides
+            slides,
+            this._gridData.rowCount
         );
 
         this._currentStep.enter();
