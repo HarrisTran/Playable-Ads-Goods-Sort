@@ -215,7 +215,7 @@ export class ShelfItemBasic extends Component implements IShelfItem {
             effect.setSiblingIndex(parentNode.children.length - 1);
         }
         
-        effect.setWorldPosition(new Vec3(wPos.x, wPos.y + 50, wPos.z)); // Adjust Y offset for UI
+        effect.setWorldPosition(new Vec3(wPos.x, wPos.y - 20, wPos.z)); // Adjust Y offset for UI
 
         const ps = effect.getComponent(ParticleSystem2D);
         if (ps) {
@@ -224,7 +224,7 @@ export class ShelfItemBasic extends Component implements IShelfItem {
         
         setTimeout(() => {
             if (effect && effect.isValid) effect.destroy();
-        }, 1500);
+        }, 1000);
     }
 
     public bounce(onCompleted?: Function, delay: number = 0): void {

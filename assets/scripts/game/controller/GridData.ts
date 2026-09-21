@@ -1,4 +1,4 @@
-import { Vec2, Vec3 } from 'cc';
+import { Vec3 } from 'cc';
 
 export interface SlideData {
     shelfId: number;

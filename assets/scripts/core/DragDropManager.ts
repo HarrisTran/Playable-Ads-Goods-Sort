@@ -1,5 +1,5 @@
-import { _decorator, Component, Node, systemEvent, SystemEventType, Touch, EventTouch, Vec3, Vec2, Color, UITransform } from 'cc';
-import { IDragObject, IDropZone, ShelfItemMeta } from './Types';
+import { _decorator, Component, Node, systemEvent, SystemEventType, Touch, EventTouch, Vec3, Vec2, Color, UITransform, Sorting2D } from 'cc';
+import { IDragObject, IDropZone} from './Types';
 
 const { ccclass, property } = _decorator;
 
@@ -21,6 +21,7 @@ export class DragDropManager extends Component {
 
     @property({ type: Vec3 })
     public dragScale: Vec3 = new Vec3(1.1, 1.1, 1);
+
 
     private _canAcceptDropIntoFunc!: (zone: IDropZone) => boolean;
 
@@ -114,6 +115,10 @@ export class DragDropManager extends Component {
             return;
         }
 
+        const sorting = this._currentDraggingObject.node.getComponent(Sorting2D);
+        if (sorting) {
+            sorting.sortingLayer = 0;
+        }
         this._currentDraggingObject.returnToOriginalPosition();
         this._currentDraggingObject.resetVisuals();
         this._currentDraggingObject.onEndDrag();
@@ -163,6 +168,11 @@ export class DragDropManager extends Component {
     private startDrag(dragObject: IDragObject, touchWorldPos: Vec2, event: EventTouch): void {
         this._currentDraggingObject = dragObject;
 
+        const sorting = dragObject.node.getComponent(Sorting2D);
+        if (sorting) {
+            sorting.sortingLayer = 1;
+        }
+
         dragObject.onStartDrag();
 
         const objWorldPos = dragObject.node.worldPosition.clone();
@@ -182,6 +192,10 @@ export class DragDropManager extends Component {
         }
 
         const dragObject = this._currentDraggingObject;
+        const sorting = dragObject.node.getComponent(Sorting2D);
+        if (sorting) {
+            sorting.sortingLayer = 0;
+        }
         const dropPosition = dragObject.position;
         const originalPosition = dragObject.getOriginalPosition();
 

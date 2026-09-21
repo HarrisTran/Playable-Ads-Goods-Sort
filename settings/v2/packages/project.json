@@ -14,5 +14,21 @@
   "script": {
     "preserveSymlinks": true
   },
-  "layer": []
+  "layer": [],
+  "custom_joint_texture_layouts": [],
+  "sorting-layer": {
+    "layers": [
+      {
+        "id": 0,
+        "name": "default",
+        "value": 0
+      },
+      {
+        "id": 1,
+        "name": "Layer1",
+        "value": 1
+      }
+    ],
+    "increaseId": 1
+  }
 }

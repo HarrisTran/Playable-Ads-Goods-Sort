@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform, Sorting2D } from 'cc';
+import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform, Sorting2D, view } from 'cc';
 import { CommonShelfNormal } from '../CommonShelfNormal';
 import { ShelfItemBasic } from '../ShelfItemBasic';
 import { DragDropManager } from '../../core/DragDropManager';
@@ -101,7 +101,6 @@ export class GameController extends Component {
                 const shelf = generatedShelves[col][row];
 
                 shelf.init(shelfIndex);
-                // We use Node position which is relative to the container for Grid Data tracking
                 gridData.registerShelf(shelfIndex, col, row, shelf.node.position);
                 allShelves[shelfIndex] = shelf;
 
@@ -159,7 +158,21 @@ export class GameController extends Component {
 
         // For UI Canvas, (0,0) of container might be center.
         const startX = -(this.columnCount - 1) * this.DELTA_X / 2.0;
-        const startY = -(this.rowCount - 1) * this.DELTA_Y / 2.0 - 200; // Offset down a bit
+        
+        const visibleSize = view.getVisibleSize();
+        const targetWidth = 580;
+        const scaleRatio = visibleSize.width / targetWidth;
+        
+        if (this.shelfContainer) {
+            this.shelfContainer.setScale(new Vec3(scaleRatio, scaleRatio, 1));
+        }
+        if (this.dragDropManager && this.dragDropManager.container) {
+            this.dragDropManager.container.setScale(new Vec3(scaleRatio, scaleRatio, 1));
+        }
+
+        const screenHeightLocal = visibleSize.height / scaleRatio;
+        const shelfHeight = 140;
+        const startY = (shelfHeight - screenHeightLocal) / 2.0;
 
         for (let col = 0; col < this.columnCount; col++) {
             shelves[col] = [];
