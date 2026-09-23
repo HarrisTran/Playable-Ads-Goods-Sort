@@ -1,5 +1,6 @@
-import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform, Sorting2D, view } from 'cc';
+import { _decorator, Component, Node, SpriteAtlas, SpriteFrame, Prefab, instantiate, Vec3, math, error, JsonAsset, UITransform, Sorting2D, view, tween } from 'cc';
 import { CommonShelfNormal } from '../CommonShelfNormal';
+import { EndCardUI } from '../../ui/EndCardUI';
 import { ShelfItemBasic } from '../ShelfItemBasic';
 import { DragDropManager } from '../../core/DragDropManager';
 import { ILevelDataManager, IShelf2, IShelfItem, ShelfItemMeta, ShelfLayerDisplay, IDropZone } from '../../core/Types';
@@ -46,9 +47,18 @@ export class GameController extends Component {
     @property({ type: Node })
     public shelfContainer: Node | null = null;
 
+    @property({ type: Prefab })
+    public handPref: Prefab | null = null;
+
+    @property({ type: EndCardUI })
+    public endCardUI: EndCardUI | null = null;
+
     private _levelAnimation: LevelAnimation | null = null;
     private _levelDataManager: ILevelDataManager | null = null;
     private _spriteMap: Map<number, SpriteFrame> = new Map();
+
+    private _handNode: Node | null = null;
+    private _isTutorialActive: boolean = false;
 
     private readonly DELTA_X = 190; // Need to adjust this to fit Canvas pixel size
     private readonly DELTA_Y = 110;
@@ -148,9 +158,12 @@ export class GameController extends Component {
             this._levelDataManager,
             this.dragDropManager,
             gridData,
-            this.winThreshold
+            this.winThreshold,
+            this.onGameWin.bind(this)
         );
         this._levelAnimation.enter();
+
+        this.initTutorial();
     }
 
     private generateShelfGrid(): CommonShelfNormal[][] {
@@ -204,10 +217,65 @@ export class GameController extends Component {
         return shelves;
     }
 
+    private onGameWin(): void {
+        if (this.endCardUI) {
+            this.endCardUI.show();
+        }
+    }
+
     protected update(dt: number) {
         if (this._levelAnimation) {
             this._levelAnimation.update(dt);
         }
+
+        if (this._isTutorialActive && this.dragDropManager?.isDragging()) {
+            this._isTutorialActive = false;
+            if (this._handNode) {
+                this._handNode.active = false;
+            }
+        }
+    }
+
+    private initTutorial() {
+        if (!this.handPref || !this._levelDataManager) return;
+
+        const shelf0 = this._levelDataManager.getShelf(0);
+        const shelf16 = this._levelDataManager.getShelf(16);
+
+        if (!shelf0 || !shelf16) return;
+        if (shelf0.dropZones.length <= 0 || shelf16.dropZones.length <= 2) return;
+
+        const startZone = shelf0.dropZones[0];
+        const endZone = shelf16.dropZones[2];
+
+        const startWorldPos = startZone.getSnapPosition(0);
+        const endWorldPos = endZone.getSnapPosition(0);
+
+        const uiTransform = this.node.getComponent(UITransform);
+        if (!uiTransform) return;
+
+        const startLocalPos = uiTransform.convertToNodeSpaceAR(startWorldPos);
+        const endLocalPos = uiTransform.convertToNodeSpaceAR(endWorldPos);
+
+        this._handNode = instantiate(this.handPref);
+        this.node.addChild(this._handNode);
+        
+        this._handNode.setPosition(startLocalPos);
+        this._isTutorialActive = true;
+
+        tween(this._handNode)
+            .to(0, { position: startLocalPos })
+            .delay(0.1)
+            .to(0.8, { position: endLocalPos })
+            .delay(0.1)
+            .call(() => {
+                if (this._handNode) {
+                    this._handNode.setPosition(startLocalPos);
+                }
+            })
+            .union()
+            .repeatForever()
+            .start();
     }
 
     protected onDestroy() {

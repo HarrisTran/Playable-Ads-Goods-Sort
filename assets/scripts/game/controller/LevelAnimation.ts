@@ -17,7 +17,7 @@ export class LevelAnimation {
     // In original code, CTA threshold triggered the end of the playable ad.
     // For a normal game, we might use this to trigger a win state.
     private _winThreshold: number;
-
+    private _onWinCallback: (() => void) | null = null;
     private _currentStep: ILevelAnimationStep | null = null;
     private _completedMatchCount: number = 0;
 
@@ -25,12 +25,14 @@ export class LevelAnimation {
         levelDataManager: ILevelDataManager,
         dragDropManager: DragDropManager,
         gridData: GridData,
-        winThreshold: number = 5
+        winThreshold: number = 5,
+        onWinCallback: (() => void) | null = null
     ) {
         this._levelDataManager = levelDataManager;
         this._dragDropManager = dragDropManager;
         this._gridData = gridData;
         this._winThreshold = winThreshold;
+        this._onWinCallback = onWinCallback;
 
         const control = new StateControl(
             this.switchToDragDrop.bind(this),
@@ -78,7 +80,9 @@ export class LevelAnimation {
     private triggerEndGame(): void {
         this._dragDropManager.pause();
         log("[Game] You Win! Reached match threshold.");
-        // We can emit an event here so the UI can show a win popup.
+        if (this._onWinCallback) {
+            this._onWinCallback();
+        }
     }
 
     private switchToTidyUp(): void {

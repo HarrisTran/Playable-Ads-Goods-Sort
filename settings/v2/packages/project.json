@@ -14,7 +14,12 @@
   "script": {
     "preserveSymlinks": true
   },
-  "layer": [],
+  "layer": [
+    {
+      "name": "Dialog",
+      "value": 524288
+    }
+  ],
   "custom_joint_texture_layouts": [],
   "sorting-layer": {
     "layers": [
@@ -25,10 +30,15 @@
       },
       {
         "id": 1,
-        "name": "Layer1",
+        "name": "Tutorial",
         "value": 1
+      },
+      {
+        "id": 2,
+        "name": "Dialog",
+        "value": 2
       }
     ],
-    "increaseId": 1
+    "increaseId": 2
   }
 }
